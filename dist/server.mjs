@@ -12,10 +12,10 @@ app.prepare().then(() => {
     const io = new Server(httpServer);
     io.on("connection", (socket) => {
         console.log(`User connected: ${socket.id}`);
-        socket.on("join-room", ({ room, username }) => {
+        socket.on("join-chat", ({ room, username }) => {
             socket.join(room);
-            console.log(`User ${username} joined room ${room}`);
-            socket.to(room).emit("user_joined", `${username} joined room `);
+            console.log(`User ${username} joined chat ${room}`);
+            socket.to(room).emit("user_joined", `${username} joined chat `);
         });
         socket.on("message", ({ room, message, sender }) => {
             console.log(`Message from ${sender} in room ${room}: ${message}`);
@@ -25,7 +25,7 @@ app.prepare().then(() => {
             console.log(`User disconnected: ${socket.id}`);
         });
         socket.on("file", ({ room, url, sender }) => {
-  console.log(`File from ${sender} in room ${room}: ${url}`);
+  console.log(`File from ${sender} in chat ${room}: ${url}`);
   socket.to(room).emit("file", { sender, url });
 });
     });

@@ -53,7 +53,7 @@ export default function Home() {
           />
           <input
             type="text"
-            placeholder="Enter room name"
+            placeholder="Enter chat name"
             value={room}
             onChange={(e) => setRoom(e.target.value)}
             className="w-64 px-4 py-2 mb-4 border-2 rounded-lg"

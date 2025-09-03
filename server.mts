@@ -17,8 +17,8 @@ app.prepare().then(() => {
 
     socket.on("join-room", ({ room, username }) => {
       socket.join(room);
-      console.log(`User ${username} joined room ${room}`);
-      socket.to(room).emit("user_joined", `${username} joined room `);
+      console.log(`User ${username} joined chat ${room}`);
+      socket.to(room).emit("user_joined", `${username} joined chat `);
     });
 
     socket.on("message", ({ room, message, sender }) => {
