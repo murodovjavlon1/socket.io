@@ -1,98 +1,93 @@
-
 "use client";
 
+import { useEffect, useState } from "react";
 import ChatForm from "@/components/chatFrom";
 import ChatMessage from "@/components/ChatMessage";
 import { socket } from "@/lib/socketClient";
-import { useEffect, useState } from "react";
 
 export default function Home() {
   const [room, setRoom] = useState("");
-  const [joined, setJoined] = useState(false);
-  const [messages, setMessages] = useState<
-    { sender: string; message: string }[]
-  >([]);
   const [userName, setUserName] = useState("");
+  const [joined, setJoined] = useState(false);
+  const [messages, setMessages] = useState<{ sender: string; message: string }[]>([]);
 
+  // Socket eventlar
   useEffect(() => {
+    // Xabar kelganda
     socket.on("message", (data) => {
+      console.log("Message received:", data);
       setMessages((prev) => [...prev, data]);
     });
 
-    socket.on("imageUpload", ({ image, filename, room, sender }) => {
-  console.log(`Image from ${sender}: ${filename}`);
-
-  if (room) {
-    socket.emit("imageToRoom", { sender, filename, data: image, room });
-  } else {
-    socket.emit("imageToAll", { sender, filename, data: image });
-  }
-});
-
-    socket.on("user_joined", (message) => {
-      setMessages((prev) => [...prev, { sender: "system", message }]);
+    // Foydalanuvchi xonaga qo‘shilganda
+    socket.on("user_joined", (msg) => {
+      setMessages((prev) => [...prev, { sender: "system", message: msg }]);
     });
 
+    // Cleanup
     return () => {
-      socket.off("user_joined");
       socket.off("message");
+      socket.off("user_joined");
     };
   }, []);
-  const handleJoinRoom = () => {
-    if (room && userName) {
-      socket.emit("join-room", { room, username: userName });
-      setJoined(true);
-    }
+
+  // Xonaga qo‘shilish
+  const joinRoom = () => {
+    if (!room || !userName) return;
+    socket.emit("join-room", { room, username: userName });
+    setJoined(true);
   };
-  const handleSendMessage = (message: string) => {
+
+  // Xabar yuborish
+  const sendMessage = (message: string) => {
     const data = { room, message, sender: userName };
-    setMessages((prev) => [...prev, { sender: userName, message }]);
+    setMessages((prev) => [...prev, data]);
     socket.emit("message", data);
-    
   };
+
+  // UI
+  if (!joined) {
+    return (
+      <div className="flex flex-col items-center mt-24 w-full max-w-md mx-auto">
+        <h1 className="text-2xl font-bold mb-4">Join a chat</h1>
+        <input
+          type="text"
+          placeholder="Enter username"
+          value={userName}
+          onChange={(e) => setUserName(e.target.value)}
+          className="w-full mb-4 px-4 py-2 border-2 rounded-lg"
+        />
+        <input
+          type="text"
+          placeholder="Enter chat room"
+          value={room}
+          onChange={(e) => setRoom(e.target.value)}
+          className="w-full mb-4 px-4 py-2 border-2 rounded-lg"
+        />
+        <button
+          onClick={joinRoom}
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg"
+        >
+          Join
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex mt-24 justify-center w-full">
-      {!joined ? (
-        <div className="flex w-full max-w-3xl mx-auto flex-col items-center">
-          <h1 className="mb-4 text-2xl font-bold">Join a chat</h1>
-          <input
-            type="text"
-            placeholder="Enter your username"
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-            className="w-64 px-4 py-2 mb-4 border-2 rounded-lg"
+    <div className="w-full max-w-3xl mx-auto mt-24 px-4">
+      <h1 className="text-2xl font-bold mb-4">Chat: {room}</h1>
+      <div className="h-[500px] overflow-y-auto mb-4 p-4 bg-gray-200 border-2 rounded-lg">
+        {messages.map((msg, i) => (
+          <ChatMessage
+            key={i}
+            sender={msg.sender}
+            message={msg.message}
+            isOwnMessage={msg.sender === userName}
           />
-          <input
-            type="text"
-            placeholder="Enter chat name"
-            value={room}
-            onChange={(e) => setRoom(e.target.value)}
-            className="w-64 px-4 py-2 mb-4 border-2 rounded-lg"
-          />
-          <button
-            onClick={handleJoinRoom}
-            className="px-4 py-2 text-white bg-blue-500 rounded-lg"
-          >
-            Join chat
-          </button>
-        </div>
-      ) : (
-        <div className="w-full max-w-3xl mx-auto">
-          <h1 className="mb-4 text-2xl font-bold">Chat: {room}</h1>
-          <div className="h-[500px] overflow-y-auto p-4 mb-4 bg-gray-200 border2 rounded-lg">
-            {messages.map((msg, index) => (
-              <ChatMessage
-                key={index}
-                sender={msg.sender}
-                message={msg.message}
-                isOwnMessage={msg.sender === userName}
-              />
-            ))}
-          </div>
-          <ChatForm onSendMessage={handleSendMessage} />
-        </div>
-      )}
+        ))}
+      </div>
+      <ChatForm onSendMessage={sendMessage} />
     </div>
   );
 }
-

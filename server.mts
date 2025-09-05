@@ -17,7 +17,7 @@ app.prepare().then(() => {
 
     socket.on("join-room", ({ room, username }) => {
       socket.join(room);
-      console.log(`User ${username} joined chat ${room}`);
+      //console.log(`User ${username} joined chat ${room}`);
       socket.to(room).emit("user_joined", `${username} joined chat `);
     });
 
@@ -27,12 +27,12 @@ app.prepare().then(() => {
     });
 
     socket.on("imageUpload", ({ image, filename, room, sender }) => {
-      console.log(`Image from ${sender} in room ${room}: ${filename}`);
+     // console.log(`Image from ${sender} in room ${room}: ${filename}`);
       socket.to(room).emit("image", { sender, filename, data: image });
     });
 
     socket.on("disconnect", () => {
-      console.log(`User disconnected: ${socket.id}`);
+     // console.log(`User disconnected: ${socket.id}`);
     }
   );
   }
