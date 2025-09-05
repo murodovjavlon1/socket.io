@@ -19,6 +19,16 @@ export default function Home() {
       setMessages((prev) => [...prev, data]);
     });
 
+    socket.on("imageUpload", ({ image, filename, room, sender }) => {
+  console.log(`Image from ${sender}: ${filename}`);
+
+  if (room) {
+    socket.emit("imageToRoom", { sender, filename, data: image, room });
+  } else {
+    socket.emit("imageToAll", { sender, filename, data: image });
+  }
+});
+
     socket.on("user_joined", (message) => {
       setMessages((prev) => [...prev, { sender: "system", message }]);
     });
@@ -38,6 +48,7 @@ export default function Home() {
     const data = { room, message, sender: userName };
     setMessages((prev) => [...prev, { sender: userName, message }]);
     socket.emit("message", data);
+    
   };
   return (
     <div className="flex mt-24 justify-center w-full">
@@ -84,3 +95,4 @@ export default function Home() {
     </div>
   );
 }
+
